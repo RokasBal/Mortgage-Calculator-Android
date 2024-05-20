@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Mortgage Calculator</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="title_information">Information</string>
+    <string name="title_calculations">Calculations</string>
+    <string name="title_data">Data</string>
+</resources>
