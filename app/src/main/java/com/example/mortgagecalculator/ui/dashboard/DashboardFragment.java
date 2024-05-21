@@ -72,79 +72,155 @@ public class DashboardFragment extends Fragment {
     }
 
     public void fillTable() {
+        int counter = 1;
         int term = loanTermYear * 12 + loanTermMonth;
-        int remainingBalance = loanAmount;
-        float monthlyInterestRate = interestRate / 1200;
-        float monthlyPayment;
-        int totalDelay = 0;
-        int delayStartMonth = 0;
-        int delayEndMonth = 0;
+        double remainingBalance = loanAmount;
+        double monthlyInterestRate = interestRate / 12 / 100;
+        double monthlyPayment;
+        int postponeStart = 0;
+        int postponeEnd = 0;
+        double totalToPay = 0;
 
         if(selectedType.equals("Annuity")) {
-            monthlyPayment = (float) ((loanAmount * monthlyInterestRate) / (1 - pow(1 + monthlyInterestRate, -(term - totalDelay))));
-        } else {
-            monthlyPayment = (loanAmount / term) + (loanAmount * monthlyInterestRate);
-        }
+            System.out.println("CALCULATING ANNUITY MORTGAGE");
 
-        for (int i = 0; i < term; i++) {
-            double interestPayment = remainingBalance * monthlyInterestRate;
-            double principalPayment = 0;
-
-            float interestPaymentRounded;
-            float remainingBalanceRounded;
-            float monthlyPaymentRounded;
-
-            // Checking if current month is inside a postpone period.
-            if(i >= delayStartMonth && i < delayEndMonth) {
-                interestPayment = 0;
-                monthlyPaymentRounded = 0;
-            } else {
-                if(selectedType.equals("Linear")) {
-                    principalPayment = loanAmount / (term - totalDelay);
-                } else {
-                    principalPayment = monthlyPayment;
-                }
-
-                if(selectedType.equals("Linear")) {
-                    monthlyPaymentRounded = ModifyInput.roundInput(principalPayment + interestPayment);
-                } else monthlyPaymentRounded = ModifyInput.roundInput(monthlyPayment);
-
-                remainingBalance -= principalPayment;
-
-                System.out.println("Monthly payment: " + monthlyPaymentRounded + ", Remaining Balance: " + remainingBalance);
+            monthlyPayment = (loanAmount * monthlyInterestRate) / (1 - Math.pow((1 + monthlyInterestRate), -term));
+            if (Double.isNaN(monthlyPayment)) {
+                monthlyPayment = loanAmount / term;
             }
 
-            if(remainingBalance < 1) remainingBalance = 0;
+            counter = 1;
+            remainingBalance = monthlyPayment * term;
+            double principal = loanAmount;
+            double percent;
 
-            interestPaymentRounded = ModifyInput.roundInput(interestPayment);
-            remainingBalanceRounded = ModifyInput.roundInput(remainingBalance);
+            for (int i = 1; i <= term; i++) {
+                remainingBalance -= monthlyPayment;
 
-            TableRow.LayoutParams params = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f);
+                if (i >= postponeStart && i < postponeEnd && postponeEnd < term) {
+                    monthlyPayment = 0;
+                    counter++;
+                }
 
+                if (postponeEnd == i && i > 1 && postponeEnd < term) {
+                    remainingBalance += remainingBalance * counter * monthlyInterestRate;
+                    monthlyPayment = remainingBalance / (term - i);
+                    principal += principal * monthlyInterestRate;
+                }
 
-            TableRow tableRow = new TableRow(getContext());
+                if (principal <= 0) principal = 0;
+                if (remainingBalance < 1) remainingBalance = 0;
+                percent = principal * monthlyInterestRate;
+                principal -= percent;
 
-            TextView monthTextView = new TextView(getContext());
-            monthTextView.setText(String.valueOf(i + 1));
-            monthTextView.setLayoutParams(params);
-            tableRow.addView(monthTextView);
+                double monthlyPaymentRounded = ModifyInput.roundInput(monthlyPayment);
+                double interestPaymentRounded = ModifyInput.roundInput(percent);
+                double remainingBalanceRounded = ModifyInput.roundInput(remainingBalance);
 
-            TextView monthlyPaymentTextView = new TextView(getContext());
-            monthlyPaymentTextView.setText(String.valueOf(monthlyPaymentRounded));
-            monthlyPaymentTextView.setLayoutParams(params);
-            tableRow.addView(monthlyPaymentTextView);
+                System.out.println("!!!Monthly payment: " + monthlyPaymentRounded + " Interest payment: " + interestPaymentRounded + " Remaining balance: " + remainingBalanceRounded);
 
-            TextView interestPaymentTextView = new TextView(getContext());
-            interestPaymentTextView.setText(String.valueOf(interestPaymentRounded));
-            interestPaymentTextView.setLayoutParams(params);
-            tableRow.addView(interestPaymentTextView);
+                TableRow.LayoutParams params1 = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.5f);
+                TableRow.LayoutParams params2 = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f);
 
-            TextView remainingBalanceTextView = new TextView(getContext());
-            remainingBalanceTextView.setText(String.valueOf(remainingBalanceRounded));
-            remainingBalanceTextView.setLayoutParams(params);
-            tableRow.addView(remainingBalanceTextView);
+                TableRow tableRow = new TableRow(getContext());
 
-            tableLayout.addView(tableRow);
+                TextView monthTextView = new TextView(getContext());
+                monthTextView.setText(String.valueOf(i));
+                monthTextView.setLayoutParams(params1);
+                tableRow.addView(monthTextView);
+
+                TextView monthlyPaymentTextView = new TextView(getContext());
+                monthlyPaymentTextView.setText(String.valueOf(monthlyPaymentRounded));
+                monthlyPaymentTextView.setLayoutParams(params2);
+                tableRow.addView(monthlyPaymentTextView);
+
+                TextView interestPaymentTextView = new TextView(getContext());
+                interestPaymentTextView.setText(String.valueOf(interestPaymentRounded));
+                interestPaymentTextView.setLayoutParams(params2);
+                tableRow.addView(interestPaymentTextView);
+
+                TextView remainingBalanceTextView = new TextView(getContext());
+                remainingBalanceTextView.setText(String.valueOf(remainingBalanceRounded));
+                remainingBalanceTextView.setLayoutParams(params2);
+                tableRow.addView(remainingBalanceTextView);
+                tableLayout.addView(tableRow);
+            }
+        } else {
+            System.out.println("CALCULATING LINEAR MORTGAGE");
+
+            double monthlyReduction = loanAmount / term;
+            for (int i = 1; i <= term; i++) {
+                monthlyPayment = monthlyReduction + monthlyInterestRate * remainingBalance;
+                if (i >= postponeStart && i < postponeEnd && postponeEnd < term) {
+                    monthlyPayment = 0;
+                    counter++;
+                } else if (postponeEnd == i && i > 1 && postponeEnd < term) {
+                    remainingBalance += remainingBalance * counter * monthlyInterestRate;
+                    monthlyReduction = remainingBalance / term;
+                    monthlyPayment = monthlyReduction + monthlyInterestRate * remainingBalance;
+                } else {
+                    remainingBalance -= monthlyReduction;
+                }
+
+                if (remainingBalance < 1) remainingBalance = 0;
+                totalToPay += monthlyPayment;
+            }
+
+            double percentPay = totalToPay;
+            monthlyReduction = loanAmount / term;
+            remainingBalance = loanAmount;
+            counter = 1;
+            double percent;
+
+            for (int i = 1; i <= term; i++) {
+                monthlyPayment = monthlyReduction + monthlyInterestRate * remainingBalance;
+                if (i >= postponeStart && i < postponeEnd && postponeEnd < term) {
+                    monthlyPayment = 0;
+                    counter++;
+                    percent = remainingBalance * monthlyInterestRate;
+                } else if (postponeEnd == i && i > 1 && postponeEnd < term) {
+                    remainingBalance += remainingBalance * counter * monthlyInterestRate;
+                    monthlyReduction = remainingBalance / term;
+                    monthlyPayment = monthlyReduction + monthlyInterestRate * remainingBalance;
+                    percent = remainingBalance * monthlyInterestRate;
+                } else {
+                    percent = remainingBalance * monthlyInterestRate;
+                    remainingBalance -= monthlyReduction;
+                }
+
+                if (remainingBalance < 1) remainingBalance = 0;
+                totalToPay -= monthlyPayment;
+
+                double monthlyPaymentRounded = ModifyInput.roundInput(monthlyPayment);
+                double interestPaymentRounded = ModifyInput.roundInput(percent);
+                double remainingBalanceRounded = ModifyInput.roundInput(totalToPay);
+
+                TableRow.LayoutParams params1 = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.5f);
+                TableRow.LayoutParams params2 = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f);
+
+                TableRow tableRow = new TableRow(getContext());
+
+                TextView monthTextView = new TextView(getContext());
+                monthTextView.setText(String.valueOf(i));
+                monthTextView.setLayoutParams(params1);
+                tableRow.addView(monthTextView);
+
+                TextView monthlyPaymentTextView = new TextView(getContext());
+                monthlyPaymentTextView.setText(String.valueOf(monthlyPaymentRounded));
+                monthlyPaymentTextView.setLayoutParams(params2);
+                tableRow.addView(monthlyPaymentTextView);
+
+                TextView interestPaymentTextView = new TextView(getContext());
+                interestPaymentTextView.setText(String.valueOf(interestPaymentRounded));
+                interestPaymentTextView.setLayoutParams(params2);
+                tableRow.addView(interestPaymentTextView);
+
+                TextView remainingBalanceTextView = new TextView(getContext());
+                remainingBalanceTextView.setText(String.valueOf(remainingBalanceRounded));
+                remainingBalanceTextView.setLayoutParams(params2);
+                tableRow.addView(remainingBalanceTextView);
+                tableLayout.addView(tableRow);
+            }
         }
     }
 }

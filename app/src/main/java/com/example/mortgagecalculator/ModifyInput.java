@@ -1,12 +1,14 @@
 package com.example.mortgagecalculator;
 
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 public class ModifyInput {
-    public static float roundInput(double input) {
+    public static double roundInput(double input) {
         DecimalFormat decimalFormat = new DecimalFormat("#.##");
+        decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
         String inputRoundedString = decimalFormat.format(input);
-        float inputRounded = Float.parseFloat(inputRoundedString);
+        double inputRounded = Double.parseDouble(inputRoundedString);
         return inputRounded;
     }
 }
