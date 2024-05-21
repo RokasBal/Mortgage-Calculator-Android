@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SeekBar;
 import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.TableRow;
@@ -16,9 +17,15 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.mortgagecalculator.ModifyInput;
+import com.example.mortgagecalculator.MonthPayment;
 import com.example.mortgagecalculator.R;
+import com.example.mortgagecalculator.SharedPaymentModel;
+import com.example.mortgagecalculator.SharedTableModel;
 import com.example.mortgagecalculator.SharedViewModel;
 import com.example.mortgagecalculator.databinding.FragmentDashboardBinding;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DashboardFragment extends Fragment {
 
@@ -28,8 +35,22 @@ public class DashboardFragment extends Fragment {
     int loanTermMonth;
     String selectedType;
 
+    int postponeStartYear;
+    int postponeStartMonth;
+    int postponeEndYear;
+    int postponeEndMonth;
+
+    int filterStart;
+    int filterEnd;
+
     private FragmentDashboardBinding binding;
     private TableLayout tableLayout;
+
+    SeekBar filterStartSlider;
+    SeekBar filterEndSlider;
+
+    List<TableRow> tableRows = new ArrayList<>();
+    List<MonthPayment> monthlyPaymentList = new ArrayList<>();
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         DashboardViewModel dashboardViewModel =
@@ -37,6 +58,9 @@ public class DashboardFragment extends Fragment {
 
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
+        filterStartSlider = root.findViewById(R.id.filterStartSlider);
+        filterEndSlider = root.findViewById(R.id.filterEndSlider);
 
         System.out.println("TEST MESSAGE IN DASHBOARD ONCREATEVIEW");
 
@@ -46,11 +70,72 @@ public class DashboardFragment extends Fragment {
         sharedViewModel.getSelected().observe(getViewLifecycleOwner(), new Observer<SharedViewModel.LoanData>() {
             @Override
             public void onChanged(SharedViewModel.LoanData loanData) {
-                getData(loanData.loanAmount, loanData.interestRate, loanData.loanTermYear, loanData.loanTermMonth, loanData.selectedType);
+                getData(loanData.loanAmount, loanData.interestRate, loanData.loanTermYear, loanData.loanTermMonth, loanData.selectedType, loanData.postponeStartYear, loanData.postponeStartMonth, loanData.postponeEndYear, loanData.postponeEndMonth);
+
+                int term = loanTermYear * 12 + loanTermMonth;
+
+                filterStartSlider.setMax(term);
+                filterEndSlider.setMax(term);
+
+                filterEndSlider.setProgress(term);
+                filterStartSlider.setProgress(0);
             }
         });
 
+        SharedTableModel sharedTableModel = new ViewModelProvider(requireActivity()).get(SharedTableModel.class);
+        sharedTableModel.getMonthlyPaymentList().observe(getViewLifecycleOwner(), new Observer<List<TableRow>>() {
+            @Override
+            public void onChanged(List<TableRow> tableRows) {
+                getTableRows(tableRows);
+//                fillTable();
+            }
+        });
+
+        filterStartSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                filterStart = progress;
+                System.out.println("filterStart set to: " + filterStart);
+                applyFilter();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Do something when the user starts a touch gesture
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Do something when the user finishes a touch gesture
+            }
+        });
+
+        filterEndSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                filterEnd = progress;
+                System.out.println("filterEnd set to: " + filterEnd);
+                applyFilter();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Do something when the user starts a touch gesture
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                // Do something when the user finishes a touch gesture
+            }
+        });
+
+
         return root;
+    }
+
+    public void getTableRows(List<TableRow> tableRows) {
+        this.tableRows = tableRows;
+        applyFilter();
     }
 
     @Override
@@ -59,167 +144,63 @@ public class DashboardFragment extends Fragment {
         binding = null;
     }
 
-    public void getData(int loanAmount, float interestRate, int loanTermYear, int loanTermMonth, String selectedType) {
+    public void getData(int loanAmount, float interestRate, int loanTermYear, int loanTermMonth, String selectedType, int postponeStartYear, int postponeStartMonth, int postponeEndYear, int postponeEndMonth) {
         this.loanAmount = loanAmount;
         this.interestRate = interestRate;
         this.loanTermYear = loanTermYear;
         this.loanTermMonth = loanTermMonth;
         this.selectedType = selectedType;
+        this.postponeStartYear = postponeStartYear;
+        this.postponeStartMonth = postponeStartMonth;
+        this.postponeEndYear = postponeEndYear;
+        this.postponeEndMonth = postponeEndMonth;
 
         System.out.println("Received data: " + loanAmount + " " + interestRate + " " + loanTermYear + " " + loanTermMonth + " " + selectedType);
 
-        fillTable();
+//        fillTable();
     }
 
-    public void fillTable() {
-        int counter = 1;
-        int term = loanTermYear * 12 + loanTermMonth;
-        double remainingBalance = loanAmount;
-        double monthlyInterestRate = interestRate / 12 / 100;
-        double monthlyPayment;
-        int postponeStart = 0;
-        int postponeEnd = 0;
-        double totalToPay = 0;
+    public void applyFilter() {
+        System.out.println("Applying filter");
 
-        if(selectedType.equals("Annuity")) {
-            System.out.println("CALCULATING ANNUITY MORTGAGE");
+        System.out.println("Before removal, child count: " + tableLayout.getChildCount());
 
-            monthlyPayment = (loanAmount * monthlyInterestRate) / (1 - Math.pow((1 + monthlyInterestRate), -term));
-            if (Double.isNaN(monthlyPayment)) {
-                monthlyPayment = loanAmount / term;
-            }
+        int rowCount = tableLayout.getChildCount();
+        for (int i = rowCount - 1; i > 0; i--) {
+            tableLayout.removeViewAt(i);
+            System.out.println("Removed row: " + i);
+        }
 
-            counter = 1;
-            remainingBalance = monthlyPayment * term;
-            double principal = loanAmount;
-            double percent;
+        System.out.println("After removal, child count: " + tableLayout.getChildCount());
 
-            for (int i = 1; i <= term; i++) {
-                remainingBalance -= monthlyPayment;
+        // Add the rows that pass the filter to the table
+        for (TableRow row : tableRows) {
+            TextView monthTextView = (TextView) row.getChildAt(0);
+            int month = Integer.parseInt(monthTextView.getText().toString());
+            System.out.println("Extracted month: " + month);
 
-                if (i >= postponeStart && i < postponeEnd && postponeEnd < term) {
-                    monthlyPayment = 0;
-                    counter++;
-                }
+            if (month >= filterStart && month <= filterEnd) {
+                // Create a new TableRow and add it to the TableLayout
+                TableRow newRow = new TableRow(getContext());
 
-                if (postponeEnd == i && i > 1 && postponeEnd < term) {
-                    remainingBalance += remainingBalance * counter * monthlyInterestRate;
-                    monthlyPayment = remainingBalance / (term - i);
-                    principal += principal * monthlyInterestRate;
-                }
-
-                if (principal <= 0) principal = 0;
-                if (remainingBalance < 1) remainingBalance = 0;
-                percent = principal * monthlyInterestRate;
-                principal -= percent;
-
-                double monthlyPaymentRounded = ModifyInput.roundInput(monthlyPayment);
-                double interestPaymentRounded = ModifyInput.roundInput(percent);
-                double remainingBalanceRounded = ModifyInput.roundInput(remainingBalance);
-
-                System.out.println("!!!Monthly payment: " + monthlyPaymentRounded + " Interest payment: " + interestPaymentRounded + " Remaining balance: " + remainingBalanceRounded);
-
-                TableRow.LayoutParams params1 = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.5f);
-                TableRow.LayoutParams params2 = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f);
-
-                TableRow tableRow = new TableRow(getContext());
-
-                TextView monthTextView = new TextView(getContext());
-                monthTextView.setText(String.valueOf(i));
-                monthTextView.setLayoutParams(params1);
-                tableRow.addView(monthTextView);
-
-                TextView monthlyPaymentTextView = new TextView(getContext());
-                monthlyPaymentTextView.setText(String.valueOf(monthlyPaymentRounded));
-                monthlyPaymentTextView.setLayoutParams(params2);
-                tableRow.addView(monthlyPaymentTextView);
-
-                TextView interestPaymentTextView = new TextView(getContext());
-                interestPaymentTextView.setText(String.valueOf(interestPaymentRounded));
-                interestPaymentTextView.setLayoutParams(params2);
-                tableRow.addView(interestPaymentTextView);
-
-                TextView remainingBalanceTextView = new TextView(getContext());
-                remainingBalanceTextView.setText(String.valueOf(remainingBalanceRounded));
-                remainingBalanceTextView.setLayoutParams(params2);
-                tableRow.addView(remainingBalanceTextView);
-                tableLayout.addView(tableRow);
-            }
-        } else {
-            System.out.println("CALCULATING LINEAR MORTGAGE");
-
-            double monthlyReduction = loanAmount / term;
-            for (int i = 1; i <= term; i++) {
-                monthlyPayment = monthlyReduction + monthlyInterestRate * remainingBalance;
-                if (i >= postponeStart && i < postponeEnd && postponeEnd < term) {
-                    monthlyPayment = 0;
-                    counter++;
-                } else if (postponeEnd == i && i > 1 && postponeEnd < term) {
-                    remainingBalance += remainingBalance * counter * monthlyInterestRate;
-                    monthlyReduction = remainingBalance / term;
-                    monthlyPayment = monthlyReduction + monthlyInterestRate * remainingBalance;
+                // Check if the old TableRow's layout parameters are null
+                if (row.getLayoutParams() != null) {
+                    newRow.setLayoutParams(row.getLayoutParams());
                 } else {
-                    remainingBalance -= monthlyReduction;
+                    // If they are null, create new layout parameters and set them to the new TableRow
+                    TableRow.LayoutParams params = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+                    newRow.setLayoutParams(params);
                 }
 
-                if (remainingBalance < 1) remainingBalance = 0;
-                totalToPay += monthlyPayment;
-            }
-
-            double percentPay = totalToPay;
-            monthlyReduction = loanAmount / term;
-            remainingBalance = loanAmount;
-            counter = 1;
-            double percent;
-
-            for (int i = 1; i <= term; i++) {
-                monthlyPayment = monthlyReduction + monthlyInterestRate * remainingBalance;
-                if (i >= postponeStart && i < postponeEnd && postponeEnd < term) {
-                    monthlyPayment = 0;
-                    counter++;
-                    percent = remainingBalance * monthlyInterestRate;
-                } else if (postponeEnd == i && i > 1 && postponeEnd < term) {
-                    remainingBalance += remainingBalance * counter * monthlyInterestRate;
-                    monthlyReduction = remainingBalance / term;
-                    monthlyPayment = monthlyReduction + monthlyInterestRate * remainingBalance;
-                    percent = remainingBalance * monthlyInterestRate;
-                } else {
-                    percent = remainingBalance * monthlyInterestRate;
-                    remainingBalance -= monthlyReduction;
+                for (int i = 0; i < row.getChildCount(); i++) {
+                    TextView oldTextView = (TextView) row.getChildAt(i);
+                    TextView newTextView = new TextView(getContext());
+                    newTextView.setText(oldTextView.getText());
+                    newTextView.setLayoutParams(oldTextView.getLayoutParams());
+                    newRow.addView(newTextView);
                 }
 
-                if (remainingBalance < 1) remainingBalance = 0;
-                totalToPay -= monthlyPayment;
-
-                double monthlyPaymentRounded = ModifyInput.roundInput(monthlyPayment);
-                double interestPaymentRounded = ModifyInput.roundInput(percent);
-                double remainingBalanceRounded = ModifyInput.roundInput(totalToPay);
-
-                TableRow.LayoutParams params1 = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.5f);
-                TableRow.LayoutParams params2 = new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1f);
-
-                TableRow tableRow = new TableRow(getContext());
-
-                TextView monthTextView = new TextView(getContext());
-                monthTextView.setText(String.valueOf(i));
-                monthTextView.setLayoutParams(params1);
-                tableRow.addView(monthTextView);
-
-                TextView monthlyPaymentTextView = new TextView(getContext());
-                monthlyPaymentTextView.setText(String.valueOf(monthlyPaymentRounded));
-                monthlyPaymentTextView.setLayoutParams(params2);
-                tableRow.addView(monthlyPaymentTextView);
-
-                TextView interestPaymentTextView = new TextView(getContext());
-                interestPaymentTextView.setText(String.valueOf(interestPaymentRounded));
-                interestPaymentTextView.setLayoutParams(params2);
-                tableRow.addView(interestPaymentTextView);
-
-                TextView remainingBalanceTextView = new TextView(getContext());
-                remainingBalanceTextView.setText(String.valueOf(remainingBalanceRounded));
-                remainingBalanceTextView.setLayoutParams(params2);
-                tableRow.addView(remainingBalanceTextView);
-                tableLayout.addView(tableRow);
+                tableLayout.addView(newRow);
             }
         }
     }

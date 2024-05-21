@@ -20,13 +20,21 @@ public class SharedViewModel extends ViewModel {
         public int loanTermYear;
         public int loanTermMonth;
         public String selectedType;
+        public int postponeStartYear;
+        public int postponeStartMonth;
+        public int postponeEndYear;
+        public int postponeEndMonth;
 
-        public LoanData(int loanAmount, float interestRate, int loanTermYear, int loanTermMonth, String selectedType) {
+        public LoanData(int loanAmount, float interestRate, int loanTermYear, int loanTermMonth, String selectedType, int postponeStartYear, int postponeStartMonth, int postponeEndYear, int postponeEndMonth) {
             this.loanAmount = loanAmount;
             this.interestRate = interestRate;
             this.loanTermYear = loanTermYear;
             this.loanTermMonth = loanTermMonth;
             this.selectedType = selectedType;
+            this.postponeStartYear = postponeStartYear;
+            this.postponeStartMonth = postponeStartMonth;
+            this.postponeEndYear = postponeEndYear;
+            this.postponeEndMonth = postponeEndMonth;
         }
     }
 }

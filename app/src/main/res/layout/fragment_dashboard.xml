@@ -7,10 +7,14 @@
     tools:context=".ui.dashboard.DashboardFragment">
 
     <ScrollView
+        android:id="@+id/scrollView2"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="600dp"
+        android:clipToPadding="false"
         android:paddingBottom="72dp"
-        android:clipToPadding="false">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -53,5 +57,35 @@
             </TableLayout>
         </LinearLayout>
     </ScrollView>
+
+    <SeekBar
+        android:id="@+id/filterStartSlider"
+        android:layout_width="150dp"
+        android:layout_height="48dp"
+        app:layout_constraintBottom_toTopOf="@+id/scrollView2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <SeekBar
+        android:id="@+id/filterEndSlider"
+        android:layout_width="150dp"
+        android:layout_height="48dp"
+        app:layout_constraintBottom_toTopOf="@+id/scrollView2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.8"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Filter:"
+        app:layout_constraintBottom_toTopOf="@+id/filterStartSlider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,98 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.HomeFragment">
+    android:paddingBottom="100dp">
 
-    <EditText
-        android:id="@+id/loanAmountInput"
-        android:layout_width="300dp"
-        android:layout_height="60dp"
-        android:ems="10"
-        android:hint="Loan amount"
-        android:inputType="number"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.25" />
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.home.HomeFragment">
 
-    <EditText
-        android:id="@+id/interestRateInput"
-        android:layout_width="300dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="20dp"
-        android:ems="10"
-        android:hint="Interest rate"
-        android:inputType="numberDecimal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loanAmountInput" />
+        <EditText
+            android:id="@+id/loanAmountInput"
+            android:layout_width="300dp"
+            android:layout_height="60dp"
+            android:ems="10"
+            android:hint="Loan amount"
+            android:inputType="number"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.100000024" />
 
-    <RadioGroup
-        android:id="@+id/radioGroup"
-        android:layout_width="300dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="21dp"
-        android:orientation="horizontal"
-        android:scrollbarAlwaysDrawVerticalTrack="false"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/interestRateInput">
+        <EditText
+            android:id="@+id/interestRateInput"
+            android:layout_width="300dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
+            android:ems="10"
+            android:hint="Interest rate"
+            android:inputType="numberDecimal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.495"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/loanAmountInput" />
 
-        <RadioButton
-            android:id="@+id/annuityButton"
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="300dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="21dp"
+            android:orientation="horizontal"
+            android:scrollbarAlwaysDrawVerticalTrack="false"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/interestRateInput">
+
+            <RadioButton
+                android:id="@+id/annuityButton"
+                android:layout_width="150dp"
+                android:layout_height="match_parent"
+                android:text="Annuity" />
+
+            <RadioButton
+                android:id="@+id/linearButton"
+                android:layout_width="150dp"
+                android:layout_height="match_parent"
+                android:text="Linear" />
+        </RadioGroup>
+
+        <EditText
+            android:id="@+id/termYearsInput"
             android:layout_width="150dp"
-            android:layout_height="match_parent"
-            android:text="Annuity" />
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
+            android:ems="10"
+            android:hint="Term years"
+            android:inputType="number"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/radioGroup" />
 
-        <RadioButton
-            android:id="@+id/linearButton"
+        <Button
+            android:id="@+id/calculateButton"
+            android:layout_width="300dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
+            android:text="Calculate"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.504"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/termYearsInput"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <EditText
+            android:id="@+id/termMonthsInput"
             android:layout_width="150dp"
-            android:layout_height="match_parent"
-            android:text="Linear" />
-    </RadioGroup>
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
+            android:ems="10"
+            android:hint="Term months"
+            android:inputType="number"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.8"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/radioGroup" />
 
-    <EditText
-        android:id="@+id/termYearsInput"
-        android:layout_width="150dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="20dp"
-        android:ems="10"
-        android:hint="Term years"
-        android:inputType="number"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/radioGroup" />
+        <EditText
+            android:id="@+id/postponeStartYearInput"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="40dp"
+            android:ems="10"
+            android:hint="Start year"
+            android:inputType="number"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.214"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/calculateButton" />
 
-    <Button
-        android:id="@+id/calculateButton"
-        android:layout_width="300dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="20dp"
-        android:text="Calculate"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.504"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/termYearsInput"
-        app:layout_constraintVertical_bias="0.0" />
+        <EditText
+            android:id="@+id/postponeStartMonthInput"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="40dp"
+            android:ems="10"
+            android:hint="Start month"
+            android:inputType="number"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.8"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/calculateButton" />
 
-    <EditText
-        android:id="@+id/termMonthsInput"
-        android:layout_width="150dp"
-        android:layout_height="60dp"
-        android:layout_marginTop="20dp"
-        android:ems="10"
-        android:hint="Term months"
-        android:inputType="number"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.8"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/radioGroup" />
+        <EditText
+            android:id="@+id/postponeEndYearInput"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
+            android:ems="10"
+            android:hint="End year"
+            android:inputType="number"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.21"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/postponeStartYearInput"
+            app:layout_constraintVertical_bias="0.0" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <EditText
+            android:id="@+id/postponeEndMonthInput"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:layout_marginTop="20dp"
+            android:ems="10"
+            android:hint="End month"
+            android:inputType="number"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.8"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/postponeStartMonthInput"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Postponement (optional):"
+            app:layout_constraintBottom_toTopOf="@+id/postponeStartYearInput"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/calculateButton" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>
