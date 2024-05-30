@@ -1,6 +1,6 @@
 # Mortgage calculator for Android
 
-A simple mortgage calculator Android app built in Android Studio.
+A simple mortgage calculator Android app built in Android Studio and written in Java.
 
 ## Features
 
